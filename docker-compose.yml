@@ -1,0 +1,11 @@
+version: "3.9"
+services:
+  manager:
+    build: 
+      context: ./services/manager
+      args:
+        service: manager
+        port: $MANAGER_PORT
+    image: jushutch/manager
+    ports:
+      - ${MANAGER_PORT}:${MANAGER_PORT}
