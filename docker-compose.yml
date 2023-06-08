@@ -3,6 +3,7 @@ services:
   manager:
     build: 
       context: ./services/manager
+      dockerfile: Dockerfile-local
       args:
         service: manager
         port: $MANAGER_PORT

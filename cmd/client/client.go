@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
 
 	cmd "github.com/jushutch/dfs/internal/command"
 )
@@ -13,11 +14,16 @@ import (
 // Command line client used to interact with the
 // distributed file system
 type Client struct {
-	outPort string
+	outPort int
 }
 
 // Continuously recieve and interpret user input
 func (client Client) Interpret() error {
+	err := client.WaitForManager()
+	if err != nil {
+		return err
+	}
+	return nil
 	for {
 		fmt.Print(string("\033[31m"), "root@client", string("\033[37m"), ": ")
 		in := bufio.NewReader(os.Stdin)
@@ -37,8 +43,28 @@ func (client Client) Interpret() error {
 	}
 }
 
+func (client Client) WaitForManager() error {
+	var conn net.Conn
+	var err error
+	for {
+		conn, err = net.Dial("tcp", ":"+fmt.Sprint(client.outPort))
+		if err == nil {
+			err = conn.Close()
+			if err != nil {
+				return err
+			}
+			break
+		}
+		fmt.Print("\rWaiting for connection ...")
+		time.Sleep(time.Duration(1 * time.Second))
+	}
+	fmt.Print("\r                                 ")
+	fmt.Print("\r")
+	return nil
+}
+
 func (client Client) Send(msg string) error {
-	conn, err := net.Dial("tcp", ":"+client.outPort)
+	conn, err := net.Dial("tcp", ":"+fmt.Sprint(client.outPort))
 	if err != nil {
 		return err
 	}
